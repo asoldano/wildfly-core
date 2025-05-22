@@ -698,4 +698,50 @@ public class CoreUtils {
         return configuration;
     }
 
+    /**
+     * Makes a HTTP request without any authentication and checks if the returned
+     * HTTP status code is the expected one. Returns HTTP response body.
+     *
+     * @param url URL to which the request should be made
+     * @param expectedStatusCode expected status code returned from the requested server
+     * @return HTTP response body
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    public static String makeCallWithoutAuthn(URL url, int expectedStatusCode) throws IOException, URISyntaxException {
+        LOGGER.info("Requesting URL " + url + " without authentication");
+        try (final CloseableHttpClient httpClient = HttpClients.createDefault()) {
+            final HttpGet httpGet = new HttpGet(url.toURI());
+            HttpResponse response = httpClient.execute(httpGet);
+            int statusCode = response.getStatusLine().getStatusCode();
+            LOGGER.info("Request to: " + url + " responds: " + statusCode);
+
+            assertEquals("Unexpected HTTP response status code.", expectedStatusCode, statusCode);
+
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                String responseBody = EntityUtils.toString(entity);
+                EntityUtils.consume(entity);
+                return responseBody;
+            }
+            return null;
+        }
+    }
+
+    /**
+     * Makes a HTTP request without any authentication and returns the HttpResponse object
+     * for further inspection. Does not check the status code.
+     *
+     * @param url URL to which the request should be made
+     * @return HttpResponse object
+     * @throws IOException
+     * @throws URISyntaxException
+     */
+    public static HttpResponse makeCallWithoutAuthnWithResponse(URL url) throws IOException, URISyntaxException {
+        LOGGER.info("Requesting URL " + url + " without authentication");
+        final CloseableHttpClient httpClient = HttpClients.createDefault();
+        final HttpGet httpGet = new HttpGet(url.toURI());
+        return httpClient.execute(httpGet);
+    }
+
 }
